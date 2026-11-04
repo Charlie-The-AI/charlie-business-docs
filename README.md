@@ -1,20 +1,99 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Charlie the Business Advisor — Documentation & Landing Website
 
-# Run and deploy your AI Studio app
+The official documentation and landing website for **Charlie the Business Advisor** (`charlie-the-business-advisor` and `@charlie-the-ai/*`).
 
-This contains everything you need to run your app locally.
+Built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **Recharts**, and **Lucide Icons**.
 
-View your app in AI Studio: https://ai.studio/apps/c620382a-fbe0-4889-a65e-748bb401d6fa
+---
 
-## Run Locally
+## ⚡ Overview
 
-**Prerequisites:**  Node.js
+Charlie the Business Advisor is a 100% free, fully open-source, multi-provider AI business intelligence and analytics toolkit. This documentation site provides interactive guides, live demos, framework integration tutorials (Next.js, React, Node.js, NestJS, Laravel), and complete API references.
 
+### Key Site Features
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- **Next.js 15 App Router:** Pre-renders all 35+ landing and documentation pages statically (SSG) for instant page loads and zero layout shift.
+- **Interactive Search (⌘K):** Instant modal search with keyboard navigation indexing all pages, headings, and keywords.
+- **Adaptive Theme:** Clean Dark and Light mode powered by system preferences and local storage persistence.
+- **Rich Code Blocks:** Deterministic syntax-highlighted code blocks with line numbering and one-click copy.
+- **Interactive Analytics Sandbox:** Real-time metrics breakdown and Pareto revenue visualization powered by Recharts.
+- **Aligned with `@charlie-the-ai` Ecosystem:** Documents both the umbrella package `charlie-the-business-advisor` and modular scoped packages (`@charlie-the-ai/analytics-core`, `@charlie-the-ai/analytics-adapters`, `@charlie-the-ai/advisor-ai`, `@charlie-the-ai/advisor-react`, and `@charlie-the-ai/advisor-types`).
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js:** `18.18+` or `20+` (LTS recommended)
+- **Package Manager:** `npm`, `pnpm`, or `yarn`
+
+### Installation
+
+```bash
+npm install
+```
+
+### Development Server
+
+Start the local development server at [http://localhost:3000](http://localhost:3000):
+
+```bash
+npm run dev
+```
+
+### Production Build
+
+Create an optimized static production build:
+
+```bash
+npm run build
+```
+
+Preview the production build locally:
+
+```bash
+npm run start
+```
+
+---
+
+## 📂 Project Structure
+
+```text
+charlie-business-advisor-UI-Doc/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx              # Root HTML shell, fonts & providers
+│   │   ├── globals.css             # Tailwind CSS v4 styling & typography
+│   │   ├── page.tsx                # Marketing landing page route
+│   │   └── docs/
+│   │       └── [[...slug]]/
+│   │           └── page.tsx        # Dynamic static documentation routes
+│   ├── components/
+│   │   ├── docs/                   # CodeBlock, Tabs, StepGuide, DocsSearch, etc.
+│   │   ├── landing/                # Hero, FeatureGrid, Workflow, Demo, FinalCTA
+│   │   ├── layout/                 # Navbar, DocsHeader, DocsSidebar, TOC, Footer
+│   │   └── ui/                     # Logo, ThemeToggle
+│   ├── data/
+│   │   ├── docsNavigation.ts       # Sidebar hierarchy and breadcrumbs
+│   │   ├── docsRegistry.ts         # Central document repository index
+│   │   └── docs/                   # Full documentation articles
+│   ├── lib/
+│   │   ├── config.ts               # Site metadata, GitHub URL, package info
+│   │   ├── theme.tsx               # ThemeContext and dark mode hook
+│   │   └── searchContext.tsx       # Global search modal context
+│   └── views/
+│       ├── LandingPage.tsx         # Full-width marketing view
+│       └── DocsLayoutPage.tsx      # 3-column documentation shell
+├── next.config.mjs
+├── postcss.config.mjs
+├── tsconfig.json
+└── package.json
+```
+
+---
+
+## 📄 License
+
+Released under the **MIT License**.

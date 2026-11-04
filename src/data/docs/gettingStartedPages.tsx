@@ -323,6 +323,22 @@ export const GETTING_STARTED_PAGES: DocPageData[] = [
             project root:
           </p>
           <PackageManagerTabs />
+
+          <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-[#27272A] dark:bg-[#111114]/70">
+            <h3 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+              Umbrella Package vs. Modular Scoped Packages
+            </h3>
+            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
+              The umbrella package <code className="font-mono text-[11px] text-emerald-700 dark:text-emerald-400">charlie-the-business-advisor</code> bundles all analytics, adapters, and AI integrations. If you prefer fine-grained modular dependencies, you can install individual packages under the <code className="font-mono text-[11px] text-emerald-700 dark:text-emerald-400">@charlie-the-ai</code> scope:
+            </p>
+            <ul className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-400 pl-4 list-disc">
+              <li><code className="font-mono text-[11px]">@charlie-the-ai/analytics-core</code> — Deterministic calculations only (revenue, Pareto, RFM, trends).</li>
+              <li><code className="font-mono text-[11px]">@charlie-the-ai/analytics-adapters</code> — Schema mapping and data conversion helpers.</li>
+              <li><code className="font-mono text-[11px]">@charlie-the-ai/advisor-ai</code> — Multi-provider AI orchestration and grounding validation.</li>
+              <li><code className="font-mono text-[11px]">@charlie-the-ai/advisor-react</code> — React hooks (<code className="font-mono text-[11px]">useBusinessAnalytics</code>) and UI components.</li>
+              <li><code className="font-mono text-[11px]">@charlie-the-ai/advisor-types</code> — Canonical TypeScript types and schemas.</li>
+            </ul>
+          </div>
         </section>
 
         <section id="verify-install" className="scroll-mt-24 space-y-3">

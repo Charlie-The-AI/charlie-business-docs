@@ -279,34 +279,34 @@ export default async function DashboardPage() {
       renderFrameworkGuide({
         framework: 'React',
         overview:
-          'In a client-side React SPA (such as Vite + React), you can either fetch pre-computed Charlie Snapshots from your backend API (recommended) or run deterministic math-only analytics on already-loaded user orders in the browser. Secret AI API keys must NEVER be placed in browser code.',
+          'In a client-side React SPA, you can use the official @charlie-the-ai/advisor-react package for turn-key hooks (useBusinessAnalytics, useAdvisorChat) and pre-built accessible dashboard components (RevenueCard, ParetoChart, CustomerSegments), or run math-only analytics with charlie-the-business-advisor. Secret AI API keys must NEVER be placed in browser code.',
         folderTree: `src/
 ├── components/
-│   └── SalesOverviewCard.tsx
+│   └── DashboardOverview.tsx
 ├── hooks/
 │   └── useMerchantSnapshot.ts   # Fetches JSON from your backend API
 └── App.tsx`,
         codeLanguage: 'typescript',
-        codeFilename: 'src/components/SalesOverviewCard.tsx',
-        code: `import React, { useMemo } from 'react';
-import { createCharlie, CharlieOrder } from 'charlie-the-business-advisor';
+        codeFilename: 'src/components/DashboardOverview.tsx',
+        code: `import React from 'react';
+import { useBusinessAnalytics, RevenueCard, ParetoChart } from '@charlie-the-ai/advisor-react';
+import type { CharlieOrder } from '@charlie-the-ai/advisor-types';
 
-export function SalesOverviewCard({ orders }: { orders: CharlieOrder[] }) {
-  // Deterministic math-only calculation (no API keys in browser!)
-  const revenue = useMemo(() => {
-    const charlie = createCharlie({ currency: 'USD' });
-    return charlie.analytics.calculateRevenue(orders);
-  }, [orders]);
+export function DashboardOverview({ orders }: { orders: CharlieOrder[] }) {
+  // Turn-key React hook for deterministic metrics computation
+  const { revenue, pareto, loading } = useBusinessAnalytics({ orders, currency: 'USD' });
+
+  if (loading) return <div>Computing analytics...</div>;
 
   return (
-    <div>
-      <h3>Net Revenue: {revenue.netRevenueFormatted}</h3>
-      <p>Paid Orders: {revenue.paidOrderCount}</p>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {revenue && <RevenueCard data={revenue} />}
+      {pareto && <ParetoChart data={pareto} />}
     </div>
   );
 }`,
         securityNote:
-          'CRITICAL: Never pass OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY into browser React components or VITE_* env vars. Anyone inspecting browser network traffic could steal your key. Always proxy AI advisory calls through your backend.',
+          'CRITICAL: Never pass OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY into browser React components or client env vars. Anyone inspecting browser network traffic could steal your key. Always proxy AI advisory calls through your backend.',
         commonMistakes: [
           'Putting AI API keys in .env with a VITE_ prefix (which bundles secrets publicly into client JavaScript).',
           'Running heavy analytics inside render without useMemo when order arrays are large.',
@@ -438,7 +438,7 @@ app.listen(4100);`,
                 required: false,
                 defaultValue: 'undefined',
                 description:
-                  'Optional instance of OpenAIProvider, GeminiProvider, ClaudeProvider, or MockProvider.',
+                  'Optional instance of OpenAIProvider, GeminiProvider, AnthropicProvider, or MockProvider.',
               },
               {
                 property: 'timezone',
@@ -659,7 +659,7 @@ totalMinor: row.amount_total // -> 4999 (do NOT multiply by 100)`}
             <strong>Fix:</strong> Pass <code className="font-mono text-xs">new MockProvider()</code>{' '}
             during local development, or configure <code className="font-mono text-xs">OpenAIProvider</code>,{' '}
             <code className="font-mono text-xs">GeminiProvider</code>, or{' '}
-            <code className="font-mono text-xs">ClaudeProvider</code> on your server.
+            <code className="font-mono text-xs">AnthropicProvider</code> on your server.
           </p>
         </section>
       </div>

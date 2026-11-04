@@ -263,7 +263,7 @@ export const AI_PAGES: DocPageData[] = [
             Every advisory response includes <code className="font-mono text-xs">isSimulated: boolean</code>.
             Real providers (<code className="font-mono text-xs">OpenAIProvider</code>,{' '}
             <code className="font-mono text-xs">GeminiProvider</code>,{' '}
-            <code className="font-mono text-xs">ClaudeProvider</code>) return{' '}
+            <code className="font-mono text-xs">AnthropicProvider</code>) return{' '}
             <code className="font-mono text-xs">isSimulated: false</code>.{' '}
             <code className="font-mono text-xs">MockProvider</code> returns{' '}
             <code className="font-mono text-xs">isSimulated: true</code> so staging UIs
@@ -358,7 +358,7 @@ export const AI_PAGES: DocPageData[] = [
     render: () =>
       renderProviderTemplate({
         name: 'Anthropic Claude Provider',
-        className: 'ClaudeProvider',
+        className: 'AnthropicProvider',
         envVar: 'ANTHROPIC_API_KEY',
         defaultModel: 'claude-3-5-sonnet-latest',
         requiresKey: true,

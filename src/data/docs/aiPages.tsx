@@ -56,8 +56,8 @@ ${opts.envVar}="your_secret_provider_key_here"`}
               ? `import { createCharlie, ${opts.className} } from 'charlie-the-business-advisor';
 
 const charlie = createCharlie({
-  currency: 'USD',
-  aiProvider: new ${opts.className}({
+  defaultCurrency: 'USD',
+  ai: new ${opts.className}({
     apiKey: process.env.${opts.envVar}!,
     model: '${opts.defaultModel}',
     timeoutMs: 15000,
@@ -66,8 +66,8 @@ const charlie = createCharlie({
               : `import { createCharlie, MockProvider } from 'charlie-the-business-advisor';
 
 const charlie = createCharlie({
-  currency: 'USD',
-  aiProvider: new MockProvider({
+  defaultCurrency: 'USD',
+  ai: new MockProvider({
     latencyMs: 50,
   }),
 });`
@@ -405,14 +405,25 @@ export const AI_PAGES: DocPageData[] = [
     href: '/docs/ai/recommendations',
     title: 'AI Recommendations',
     description:
-      'Generate prioritized, evidence-cited business suggestions from a Charlie Snapshot.',
+      'Generate prioritized, evidence-cited business suggestions from a Charlie Snapshot with mathematical grounding verification.',
     group: 'AI Providers',
     headings: [
       { id: 'how-recommendations-work', title: 'How Recommendations Work' },
+      { id: 'grounding-verification', title: 'Grounding Verification & Hallucination Defense' },
       { id: 'code-example', title: 'Requesting Recommendations' },
+      { id: 'privacy-by-default', title: 'Privacy by Default' },
     ],
-    searchKeywords: ['recommendations', 'advice', 'advisor', 'priority', 'evidence'],
-    markdownSummary: `# AI Recommendations\n\nGenerate structured, evidence-cited business recommendations from a computed Charlie Snapshot.`,
+    searchKeywords: [
+      'recommendations',
+      'advice',
+      'advisor',
+      'priority',
+      'evidence',
+      'grounding',
+      'hallucination defense',
+      'charlie.advise',
+    ],
+    markdownSummary: `# AI Recommendations\n\nGenerate structured, evidence-cited business recommendations from a computed Charlie Snapshot with automated mathematical grounding checks.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <section id="how-recommendations-work" className="scroll-mt-24 space-y-3">
@@ -421,13 +432,52 @@ export const AI_PAGES: DocPageData[] = [
           </h2>
           <p>
             Rather than returning unstructured walls of prose,{' '}
-            <code className="font-mono text-xs">charlie.advisor.recommend()</code> instructs
+            <code className="font-mono text-xs">charlie.advise()</code> instructs
             your configured AI provider to return an array of typed action cards—each
             containing a <code className="font-mono text-xs">priority</code>,{' '}
-            <code className="font-mono text-xs">title</code>, quantitative{' '}
-            <code className="font-mono text-xs">evidence</code> from the snapshot, and a{' '}
-            <code className="font-mono text-xs">suggestedAction</code>.
+            <code className="font-mono text-xs">title</code>,{' '}
+            <code className="font-mono text-xs">action</code>,{' '}
+            <code className="font-mono text-xs">estimatedImpact</code>, and quantitative{' '}
+            <code className="font-mono text-xs">evidence</code> from the snapshot.
           </p>
+        </section>
+
+        <section id="grounding-verification" className="scroll-mt-24 space-y-3">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Grounding Verification &amp; Hallucination Defense
+          </h2>
+          <p>
+            When an LLM generates advice citing a metric (such as <em>&quot;$14,200 revenue&quot;</em> or{' '}
+            <em>&quot;28% churn rate&quot;</em>), Charlie validates that claim against the source snapshot:
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            {[
+              {
+                step: '1. Extraction',
+                desc: 'Charlie scans generated recommendations for quantitative assertions, currency amounts, and percentages.',
+              },
+              {
+                step: '2. Cross-Check',
+                desc: 'Extracted figures are compared against the deterministic calculations in the AnalyticsSnapshot.',
+              },
+              {
+                step: '3. Flagging & Scoring',
+                desc: 'Discrepancies penalize the groundingScore and flag ungrounded claims so your application can suppress or highlight them.',
+              },
+            ].map((card) => (
+              <div
+                key={card.step}
+                className="rounded-xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-[#27272A] dark:bg-[#111114]"
+              >
+                <h3 className="font-mono text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                  {card.step}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  {card.desc}
+                </p>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section id="code-example" className="scroll-mt-24 space-y-3">
@@ -437,14 +487,41 @@ export const AI_PAGES: DocPageData[] = [
           <CodeBlock
             language="typescript"
             filename="recommendations.ts"
-            illustrativeLabel="Illustrative SDK Example"
-            code={`const snapshot = charlie.analytics.createSnapshot({ orders });
+            showLineNumbers
+            illustrativeLabel="Unified Charlie Client"
+            code={`import { createCharlie, OpenAIProvider } from 'charlie-the-business-advisor';
 
-const result = await charlie.advisor.recommend(snapshot, {
-  focus: 'general', // 'general' | 'retention' | 'revenue'
-  maxRecommendations: 3,
-});`}
+const charlie = createCharlie({
+  defaultCurrency: 'USD',
+  ai: new OpenAIProvider({ apiKey: process.env.OPENAI_API_KEY! }),
+});
+
+const result = await charlie.advise({
+  orders, // or pass existing analytics snapshot
+  objective: 'Increase repeat customer retention and reduce churn',
+});
+
+console.log('Executive Summary:', result.summary);
+
+for (const rec of result.recommendations) {
+  console.log(\`\n[\${rec.priority.toUpperCase()}] \${rec.title}\`);
+  console.log(\`Action: \${rec.action}\`);
+  console.log(\`Estimated Impact: \${rec.estimatedImpact}\`);
+  console.log(\`Grounding Score: \${rec.groundingScore}\`);
+  console.log(\`Grounded in metrics:\`, rec.evidence);
+}`}
           />
+        </section>
+
+        <section id="privacy-by-default" className="scroll-mt-24 space-y-3">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Privacy by Default
+          </h2>
+          <Callout variant="tip" title="Zero raw order dumps or PII leakage">
+            Charlie never sends raw database rows or transaction records to LLM providers. Only
+            aggregated statistical distributions (cohort counts, revenue totals, concentration ratios)
+            are included in prompt contexts. Customer names and emails are stripped by default.
+          </Callout>
         </section>
       </div>
     ),
@@ -458,10 +535,11 @@ const result = await charlie.advisor.recommend(snapshot, {
     group: 'AI Providers',
     headings: [
       { id: 'grounded-qa', title: 'Grounded Business Q&A' },
-      { id: 'chat-example', title: 'Answering a Merchant Question' },
+      { id: 'chat-example', title: 'Conversational Business Chat' },
+      { id: 'chat-history', title: 'Multi-Turn Conversation History' },
     ],
-    searchKeywords: ['chat', 'questions', 'ask', 'conversational', 'advisor.ask'],
-    markdownSummary: `# AI Business Chat\n\nAnswer merchant questions grounded strictly in verified Charlie Snapshot metrics.`,
+    searchKeywords: ['chat', 'questions', 'ask', 'conversational', 'charlie.chat'],
+    markdownSummary: `# AI Business Chat\n\nAnswer merchant questions grounded strictly in verified Charlie Snapshot metrics with citation backing.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <section id="grounded-qa" className="scroll-mt-24 space-y-3">
@@ -470,30 +548,53 @@ const result = await charlie.advisor.recommend(snapshot, {
           </h2>
           <p>
             Business users often want quick answers like{' '}
-            <em>&quot;How did October compare to September?&quot;</em> or{' '}
+            <em>&quot;Why did our average order value drop last week?&quot;</em> or{' '}
             <em>&quot;Which customer group brings in most of our sales?&quot;</em>.{' '}
-            <code className="font-mono text-xs">charlie.advisor.ask()</code> pairs the
-            question with your current <code className="font-mono text-xs">Snapshot</code>{' '}
-            so answers stay anchored to real figures.
+            <code className="font-mono text-xs">charlie.chat()</code> pairs the
+            question with your current <code className="font-mono text-xs">AnalyticsSnapshot</code>{' '}
+            so answers stay anchored to real figures and cite specific metrics.
           </p>
         </section>
 
         <section id="chat-example" className="scroll-mt-24 space-y-3">
           <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
-            Answering a Merchant Question
+            Conversational Business Chat
           </h2>
           <CodeBlock
             language="typescript"
             filename="ask-charlie.ts"
-            illustrativeLabel="Illustrative SDK Example"
-            code={`const reply = await charlie.advisor.ask({
-  snapshot,
-  question: 'Are we overly dependent on a few customers right now?',
+            showLineNumbers
+            illustrativeLabel="Unified Charlie Client"
+            code={`import { createCharlie, OpenAIProvider } from 'charlie-the-business-advisor';
+
+const charlie = createCharlie({
+  defaultCurrency: 'USD',
+  ai: new OpenAIProvider({ apiKey: process.env.OPENAI_API_KEY! }),
 });
 
-console.log(reply.answer);
-// "Your top 22 customers (18.3% of buyers) generate 80.4% of net revenue..."`}
+const reply = await charlie.chat({
+  question: 'Why did our average order value drop last week?',
+  orders, // or pass existing analytics snapshot
+  history: [
+    { role: 'user', content: 'What were total sales last month?' },
+    { role: 'assistant', content: 'Net sales were $45,200 across 312 completed orders.' },
+  ],
+});
+
+console.log('Answer:', reply.answer);
+console.log('Citations:', reply.citations);`}
           />
+        </section>
+
+        <section id="chat-history" className="scroll-mt-24 space-y-3">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Multi-Turn Conversation History
+          </h2>
+          <p>
+            Maintain dialogue state across user interactions by passing previous{' '}
+            <code className="font-mono text-xs">history</code> messages. Charlie preserves
+            context while continually anchoring responses to the current verified metrics snapshot.
+          </p>
         </section>
       </div>
     ),

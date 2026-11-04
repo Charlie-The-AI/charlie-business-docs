@@ -14,11 +14,23 @@ export const ANALYTICS_PAGES: DocPageData[] = [
     group: 'Analytics',
     headings: [
       { id: 'what-revenue-calculates', title: 'What We Are Calculating' },
+      { id: 'money-utility', title: 'Fixed-Point Money Arithmetic & Formatting' },
       { id: 'usage-example', title: 'Code Example' },
       { id: 'revenue-output', title: 'Understanding the Output' },
     ],
-    searchKeywords: ['revenue', 'AOV', 'average order value', 'gross', 'net', 'refunds'],
-    markdownSummary: `# Revenue Metrics\n\nCalculate exact gross revenue, net revenue after refunds, order counts, and average order value (AOV).`,
+    searchKeywords: [
+      'revenue',
+      'AOV',
+      'average order value',
+      'gross',
+      'net',
+      'refunds',
+      'Money',
+      'fixed-point',
+      'cents',
+      'kobo',
+    ],
+    markdownSummary: `# Revenue Metrics & Money Utility\n\nCalculate exact gross revenue, net revenue after refunds, order counts, and average order value (AOV) using integer minor-unit arithmetic with zero IEEE-754 floating-point drift.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <section id="what-revenue-calculates" className="scroll-mt-24 space-y-3">
@@ -32,6 +44,43 @@ export const ANALYTICS_PAGES: DocPageData[] = [
           </p>
         </section>
 
+        <section id="money-utility" className="scroll-mt-24 space-y-4">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Fixed-Point Money Arithmetic &amp; Formatting
+          </h2>
+          <p>
+            Financial software must never rely on standard JavaScript floating-point numbers
+            (where <code className="font-mono text-xs">0.1 + 0.2 === 0.30000000000000004</code>).
+            Charlie&apos;s built-in <code className="font-mono text-xs">Money</code> utility operates
+            strictly on integer minor currency units (cents, kobo, pence) with half-up rounding,
+            bounds verification, and locale-aware formatting:
+          </p>
+          <CodeBlock
+            language="typescript"
+            filename="money-arithmetic.ts"
+            showLineNumbers
+            code={`import { Money } from 'charlie-the-business-advisor';
+// or: import { Money } from '@charlie-the-ai/analytics-core';
+
+// Safe integer addition & subtraction (in minor units)
+const total = Money.add(1099, 2500, 450); // 4049 cents ($40.49)
+const net = Money.subtract(total, 500);    // 3549 cents ($35.49)
+
+// Multiplications & divisions with banker's half-up rounding
+const discounted = Money.multiply(10000, 0.85); // 8500
+const unitShare = Money.divide(10000, 3);        // 3333
+
+// Locale-aware currency formatting
+console.log(Money.format(2500000, 'NGN')); // "₦25,000.00"
+console.log(Money.format(1499, 'USD'));    // "$14.99"
+console.log(Money.format(1500, 'JPY'));    // "¥1,500"
+
+// Unit conversion helpers
+const minor = Money.toMinorUnits(19.99, 'USD'); // 1999
+const major = Money.toMajorUnits(1999, 'USD');  // 19.99`}
+          />
+        </section>
+
         <section id="usage-example" className="scroll-mt-24 space-y-3">
           <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
             Code Example
@@ -39,11 +88,18 @@ export const ANALYTICS_PAGES: DocPageData[] = [
           <CodeBlock
             language="typescript"
             filename="revenue.ts"
-            illustrativeLabel="Illustrative SDK Example"
+            showLineNumbers
+            illustrativeLabel="Unified Charlie Client"
             code={`import { createCharlie } from 'charlie-the-business-advisor';
 
-const charlie = createCharlie({ currency: 'USD' });
-const metrics = charlie.analytics.calculateRevenue(orders);`}
+const charlie = createCharlie({ defaultCurrency: 'USD' });
+
+// Calculate sales summary directly:
+const sales = charlie.sales(orders);
+
+console.log('Net Revenue:', sales.netRevenueMinorUnits); // e.g. 820000 ($8,200.00)
+console.log('Formatted:', sales.netRevenueFormatted);   // "$8,200.00"
+console.log('AOV:', sales.averageOrderValueFormatted);   // "$82.00"`}
           />
         </section>
 
@@ -52,29 +108,30 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
             Understanding the Output
           </h2>
           <ExampleResponse
-            title="RevenueResult"
+            title="SalesSummary"
             json={`{
   "currency": "USD",
-  "grossRevenueMinor": 845000,
-  "refundedMinor": 25000,
-  "netRevenueMinor": 820000,
+  "grossRevenueMinorUnits": 845000,
+  "refundedMinorUnits": 25000,
+  "netRevenueMinorUnits": 820000,
   "netRevenueFormatted": "$8,200.00",
-  "paidOrderCount": 100,
-  "averageOrderValueMinor": 8200,
+  "totalOrders": 100,
+  "completedOrdersCount": 100,
+  "averageOrderValueMinorUnits": 8200,
   "averageOrderValueFormatted": "$82.00"
 }`}
             explanations={[
               {
-                field: 'grossRevenueMinor',
-                meaning: 'Total of all paid orders before partial or full refunds ($8,450.00).',
+                field: 'grossRevenueMinorUnits',
+                meaning: 'Total of all completed orders before partial or full refunds ($8,450.00).',
               },
               {
-                field: 'netRevenueMinor',
-                meaning: 'Gross revenue minus refundedMinor ($8,200.00).',
+                field: 'netRevenueMinorUnits',
+                meaning: 'Gross revenue minus refunded amounts ($8,200.00).',
               },
               {
-                field: 'averageOrderValueMinor',
-                meaning: 'Net revenue divided by paidOrderCount ($82.00 per order).',
+                field: 'averageOrderValueMinorUnits',
+                meaning: 'Net revenue divided by completed order count ($82.00 per order).',
               },
             ]}
           />
@@ -116,11 +173,20 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
           <CodeBlock
             language="typescript"
             filename="pareto.ts"
-            illustrativeLabel="Illustrative SDK Example"
-            code={`const customerPareto = charlie.analytics.calculatePareto(orders, {
-  groupBy: 'customer',
-  thresholdPercent: 80,
-});`}
+            showLineNumbers
+            illustrativeLabel="Unified Charlie Client"
+            code={`import { createCharlie } from 'charlie-the-business-advisor';
+
+const charlie = createCharlie({ defaultCurrency: 'USD' });
+
+// Analyze customer concentration (defaults to 80% threshold):
+const customerPareto = charlie.pareto(orders, 'customer');
+
+// Or analyze product sales concentration:
+const productPareto = charlie.pareto(orders, 'product');
+
+console.log(\`Vital few items: \${customerPareto.topContributorsCount} of \${customerPareto.totalItemsCount}\`);
+console.log(\`Gini coefficient: \${customerPareto.giniCoefficient}\`);`}
           />
         </section>
 
@@ -131,23 +197,28 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
           <ExampleResponse
             title="ParetoResult"
             json={`{
-  "groupBy": "customer",
-  "thresholdPercent": 80,
-  "totalEntities": 120,
-  "vitalFewCount": 22,
-  "vitalFewEntitySharePercent": 18.3,
-  "vitalFewRevenueSharePercent": 80.4,
-  "topContributors": [
-    { "id": "cus_09", "revenueMinor": 94000, "cumulativeSharePercent": 11.5 }
+  "dimension": "customer",
+  "thresholdPercentage": 80,
+  "totalItemsCount": 120,
+  "topContributorsCount": 22,
+  "topContributorsPercentage": 18.3,
+  "giniCoefficient": 0.68,
+  "contributors": [
+    {
+      "id": "cus_09",
+      "name": "cus_09",
+      "revenueMinorUnits": 94000,
+      "cumulativePercentage": 11.5
+    }
   ]
 }`}
             explanations={[
               {
-                field: 'vitalFewCount (22)',
-                meaning: 'Out of 120 total buyers, just 22 customers account for 80.4% of revenue.',
+                field: 'topContributorsCount (22)',
+                meaning: 'Out of 120 total buyers, just 22 customers account for 80% of revenue.',
               },
               {
-                field: 'vitalFewEntitySharePercent (18.3%)',
+                field: 'topContributorsPercentage (18.3%)',
                 meaning: '18.3% of your customer base drives over four-fifths of total sales.',
               },
             ]}
@@ -310,10 +381,18 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
           <CodeBlock
             language="typescript"
             filename="rfm-analysis.ts"
-            illustrativeLabel="Illustrative SDK Example"
-            code={`const rfm = charlie.analytics.calculateRFM(orders, {
-  referenceDate: '2026-11-04T00:00:00Z',
-});`}
+            showLineNumbers
+            illustrativeLabel="Unified Charlie Client"
+            code={`import { createCharlie } from 'charlie-the-business-advisor';
+
+const charlie = createCharlie({ defaultCurrency: 'USD' });
+
+// Compute RFM segmentation across customer cohorts:
+const customers = charlie.customers(orders);
+
+console.log('Repeat Customer Rate:', customers.repeatCustomerRate);
+console.log('Champions count:', customers.segments.champions.length);
+console.log('At-Risk count:', customers.segments.atRisk.length);`}
           />
         </section>
 
@@ -322,32 +401,26 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
             Example Output &amp; Next Actions
           </h2>
           <ExampleResponse
-            title="RFMResult"
+            title="CustomerAnalytics"
             json={`{
-  "referenceDate": "2026-11-04T00:00:00Z",
+  "totalCustomers": 120,
+  "repeatCustomerRate": 0.42,
   "segments": {
-    "Champions": { "count": 28, "revenueSharePercent": 51.4 },
-    "At-Risk": { "count": 14, "revenueSharePercent": 16.2 },
-    "New Buyers": { "count": 49, "revenueSharePercent": 12.8 }
-  },
-  "customers": [
-    {
-      "customerId": "cus_amina",
-      "recencyDays": 4,
-      "frequencyCount": 9,
-      "monetaryMinor": 142000,
-      "scores": { "r": 5, "f": 5, "m": 5 },
-      "segment": "Champions"
-    }
-  ]
+    "champions": [{ "customerId": "cus_amina", "totalSpendMinorUnits": 142000 }],
+    "loyal": [],
+    "potentialLoyalists": [],
+    "atRisk": [{ "customerId": "cus_david", "totalSpendMinorUnits": 98000 }],
+    "hibernating": [],
+    "lost": []
+  }
 }`}
             explanations={[
               {
-                field: 'scores ({ r: 5, f: 5, m: 5 })',
-                meaning: 'Quintile score from 1 (lowest) to 5 (strongest) across each dimension.',
+                field: 'repeatCustomerRate',
+                meaning: 'Proportion of buyers with 2 or more completed transactions (42%).',
               },
               {
-                field: 'At-Risk cohort',
+                field: 'atRisk cohort',
                 meaning:
                   'High historical buyers who have gone quiet—ideal candidates for a friendly personal check-in.',
               },
@@ -393,22 +466,25 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
           <CodeBlock
             language="typescript"
             filename="trends.ts"
-            illustrativeLabel="Illustrative SDK Example"
-            code={`const trend = charlie.analytics.calculateTrends(orders, {
-  interval: 'month',
-  timezone: 'UTC',
-});`}
+            showLineNumbers
+            illustrativeLabel="Unified Charlie Client"
+            code={`import { createCharlie } from 'charlie-the-business-advisor';
+
+const charlie = createCharlie({ defaultCurrency: 'USD' });
+const trends = charlie.trends(orders);
+
+console.log('Daily moving average:', trends.movingAverages.sevenDay);
+console.log('Growth direction:', trends.growthRatePercentage > 0 ? 'upward' : 'downward');`}
           />
           <ExampleResponse
-            title="TrendResult"
+            title="TrendAnalytics"
             json={`{
-  "interval": "month",
-  "direction": "upward",
-  "latestGrowthPercent": 20.3,
-  "series": [
-    { "bucket": "2026-09", "netRevenueMinor": 2945000, "orderCount": 362 },
-    { "bucket": "2026-10", "netRevenueMinor": 3542000, "orderCount": 428 }
-  ]
+  "movingAverages": {
+    "sevenDay": 450000,
+    "thirtyDay": 420000
+  },
+  "growthRatePercentage": 14.8,
+  "anomalies": []
 }`}
           />
         </section>
@@ -436,7 +512,7 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
           </h2>
           <p>
             Instead of invoking four separate analytics methods for every dashboard load,{' '}
-            <code className="font-mono text-xs">createSnapshot()</code> computes a unified,
+            <code className="font-mono text-xs">charlie.analyze()</code> computes a unified,
             timestamped summary in a single pass. Snapshots also serve as the exact input
             contract for Charlie&apos;s optional AI Recommendation and Chat modules.
           </p>
@@ -449,12 +525,21 @@ const metrics = charlie.analytics.calculateRevenue(orders);`}
           <CodeBlock
             language="typescript"
             filename="snapshot.ts"
-            illustrativeLabel="Illustrative SDK Example"
-            code={`const snapshot = charlie.analytics.createSnapshot({
+            showLineNumbers
+            illustrativeLabel="Unified Charlie Client"
+            code={`import { createCharlie } from 'charlie-the-business-advisor';
+
+const charlie = createCharlie({ defaultCurrency: 'USD' });
+
+const snapshot = charlie.analyze({
   orders: normalizedOrders,
   customers: normalizedCustomers,
-  trendInterval: 'week',
+  paretoThreshold: 80,
 });
+
+console.log('Snapshot ID:', snapshot.snapshotId);
+console.log('Net Sales:', snapshot.sales.netRevenueMinorUnits);
+console.log('Pareto Product Share:', snapshot.pareto.products.concentrationRatio);
 
 // Safe to serialize to JSON, store in Redis, or return from an API route
 return Response.json(snapshot);`}

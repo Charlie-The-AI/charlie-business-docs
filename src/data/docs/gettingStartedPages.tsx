@@ -289,10 +289,11 @@ export const GETTING_STARTED_PAGES: DocPageData[] = [
     headings: [
       { id: 'requirements', title: 'System Requirements' },
       { id: 'install-package', title: 'Install the Package' },
+      { id: 'developer-cli', title: 'Developer CLI' },
       { id: 'verify-install', title: 'Verify Your Setup' },
     ],
-    searchKeywords: ['install', 'npm', 'pnpm', 'yarn', 'bun', 'nodejs', 'typescript'],
-    markdownSummary: `# Installation\n\n\`\`\`bash\nnpm install charlie-the-business-advisor\n\`\`\`\n\nRequires Node.js 18+ and TypeScript 5.0+ (recommended).`,
+    searchKeywords: ['install', 'npm', 'pnpm', 'yarn', 'bun', 'nodejs', 'typescript', 'cli', 'init', 'doctor'],
+    markdownSummary: `# Installation\n\n\`\`\`bash\nnpm install charlie-the-business-advisor\n\`\`\`\n\nRequires Node.js 18+ and TypeScript 5.0+ (recommended).\n\nUse \`npx charlie-the-business-advisor init\` to scaffold configuration.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <section id="requirements" className="scroll-mt-24 space-y-3">
@@ -339,6 +340,24 @@ export const GETTING_STARTED_PAGES: DocPageData[] = [
               <li><code className="font-mono text-[11px]">@charlie-the-ai/advisor-types</code> — Canonical TypeScript types and schemas.</li>
             </ul>
           </div>
+        </section>
+
+        <section id="developer-cli" className="scroll-mt-24 space-y-3">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Developer CLI
+          </h2>
+          <p>
+            Scaffold your project configuration and verify environment health in one command:
+          </p>
+          <CodeBlock
+            language="bash"
+            filename="Terminal"
+            code={`# Initialize charlie.config.ts and .env.example
+npx charlie-the-business-advisor init
+
+# Check environment diagnostics and provider status
+npx charlie-the-business-advisor doctor`}
+          />
         </section>
 
         <section id="verify-install" className="scroll-mt-24 space-y-3">
@@ -477,16 +496,26 @@ const sampleOrders: CharlieOrder[] = [
                     language="typescript"
                     filename="quick-start.ts (continued)"
                     illustrativeLabel="Illustrative SDK Example"
-                    code={`async function run() {
-  const charlie = createCharlie({
-    currency: 'USD',
-    aiProvider: new MockProvider(),
+                    code={`import { Charlie } from 'charlie-the-business-advisor';
+
+async function run() {
+  // 1. Initialize (runs 100% offline with deterministic calculations)
+  const charlie = new Charlie({ defaultCurrency: 'USD' });
+
+  // 2. Deterministic Financial Analytics
+  const snapshot = charlie.analyze({ orders: sampleOrders });
+  console.log('Net Revenue:', snapshot.sales.netRevenueFormatted);
+
+  // 3. Grounded AI Business Recommendations
+  const advice = await charlie.advise({ analytics: snapshot });
+  console.log('Top Recommendation:', advice.recommendations[0]?.title);
+
+  // 4. Natural Language Business Chat
+  const reply = await charlie.chat({
+    question: 'How can I increase average order value?',
+    analytics: snapshot,
   });
-
-  const snapshot = charlie.analytics.createSnapshot({ orders: sampleOrders });
-  const advice = await charlie.advisor.recommend(snapshot);
-
-  console.log({ revenue: snapshot.revenue, advice });
+  console.log('Charlie Answer:', reply.answer);
 }
 
 run();`}

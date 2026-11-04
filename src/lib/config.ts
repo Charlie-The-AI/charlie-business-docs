@@ -9,7 +9,7 @@ export const SITE_CONFIG = {
   // Configurable repository URL ready to connect to the canonical repository
   githubUrl:
     process.env.NEXT_PUBLIC_GITHUB_URL ||
-    'https://github.com/charlie-advisor/charlie-the-business-advisor',
+    'https://github.com/charlie-the-ai/charlie-the-business-advisor',
   license: 'MIT License',
   installCommands: {
     npm: 'npm install charlie-the-business-advisor',

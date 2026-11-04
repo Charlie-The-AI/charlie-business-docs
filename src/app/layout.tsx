@@ -38,6 +38,11 @@ export const metadata: Metadata = {
     description:
       'Your business data has a story. Let Charlie tell it. Add business analytics and optional AI-driven insights to your applications with a free, open-source TypeScript toolkit.',
   },
+  icons: {
+    icon: '/Charlie-logo.jpeg',
+    shortcut: '/Charlie-logo.jpeg',
+    apple: '/Charlie-logo.jpeg',
+  },
 };
 
 export default function RootLayout({

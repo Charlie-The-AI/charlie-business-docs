@@ -386,6 +386,9 @@ export const DATASETS_AND_ADAPTERS_PAGES: DocPageData[] = [
       { id: 'visual-comparison', title: 'Side-by-Side Comparison' },
       { id: 'how-conversion-works', title: 'How the Conversion Works' },
       { id: 'first-adapter-code', title: 'Write Your First Adapter' },
+      { id: 'batch-normalization', title: 'Batch Processing & Error Isolation' },
+      { id: 'laravel-adapter', title: 'Laravel Eloquent Adapter Preset' },
+      { id: 'status-normalization', title: 'Status Normalization Rules' },
     ],
     searchKeywords: [
       'adapters',
@@ -394,8 +397,11 @@ export const DATASETS_AND_ADAPTERS_PAGES: DocPageData[] = [
       'amount_paid',
       'buyer_id',
       'schema mapping',
+      'normalizeBatch',
+      'createLaravelOrderAdapter',
+      'status mapping',
     ],
-    markdownSummary: `# Use Charlie with Your Existing Database\n\nYou don't need to rename your database tables or change your existing application. Charlie adapters translate your custom fields into Charlie's standard format.`,
+    markdownSummary: `# Use Charlie with Your Existing Database\n\nYou don't need to rename your database tables or change your existing application. Charlie adapters translate your custom fields into Charlie's standard format with batch normalization and error isolation.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <section id="why-adapters-exist" className="scroll-mt-24 space-y-3">
@@ -538,6 +544,178 @@ const adaptOrders = createOrderAdapter({
   createdAt: (row: { created_at?: string }) => row.created_at ?? new Date().toISOString(),
 });`}
           />
+        </section>
+
+        <section id="batch-normalization" className="scroll-mt-24 space-y-4">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Batch Processing &amp; Error Isolation
+          </h2>
+          <p>
+            When syncing thousands of orders from SQL queries or CSV imports, a single corrupt
+            row should never bring down your entire analytics pipeline. Adapters provide{' '}
+            <code className="font-mono text-xs">adapter.normalizeBatch(rows)</code> with automatic
+            error isolation and duplicate protection:
+          </p>
+          <CodeBlock
+            language="typescript"
+            filename="batch-sync.ts"
+            showLineNumbers
+            illustrativeLabel="Batch Normalization Example"
+            code={`import { createOrderAdapter } from 'charlie-the-business-advisor';
+
+const adapter = createOrderAdapter<RawDatabaseRow>({
+  id: 'order_uuid',
+  customerId: 'account_id',
+  totalMajorUnits: 'charged_amount', // Converted to integer cents automatically
+  status: 'status_code',
+  currency: () => 'USD',
+  createdAt: 'created_time',
+});
+
+// Normalize an array of database rows safely:
+const batch = adapter.normalizeBatch(rawDbRows);
+
+console.log(\`Total records processed: \${batch.totalProcessed}\`);
+console.log(\`Successfully valid: \${batch.orders.length}\`);
+console.log(\`Validation failures: \${batch.errors.length}\`);
+console.log(\`Duplicates skipped: \${batch.duplicateCount}\`);
+
+// batch.orders is now ready to pass directly to charlie.analyze({ orders: batch.orders })`}
+          />
+          <Callout variant="tip" title="Duplicate ID Protection">
+            <code className="font-mono text-xs">normalizeBatch</code> tracks seen order IDs in an
+            internal set during processing. If identical order IDs appear multiple times in the source array,
+            subsequent occurrences are safely skipped to prevent double-counting revenue in Pareto and trends.
+          </Callout>
+        </section>
+
+        <section id="laravel-adapter" className="scroll-mt-24 space-y-4">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Laravel Eloquent Adapter Preset
+          </h2>
+          <p>
+            Building a Laravel backend with PHP? You can use Charlie&apos;s pre-configured
+            Laravel Eloquent order adapter. It natively understands typical Eloquent relations
+            such as <code className="font-mono text-xs">customer.id</code>,{' '}
+            <code className="font-mono text-xs">order_items</code>, and major-unit decimals:
+          </p>
+          <CodeBlock
+            language="typescript"
+            filename="laravel-adapter.ts"
+            showLineNumbers
+            code={`import { createLaravelOrderAdapter } from 'charlie-the-business-advisor';
+// or: import { createLaravelOrderAdapter } from '@charlie-the-ai/analytics-adapters';
+
+const laravelAdapter = createLaravelOrderAdapter('NGN');
+
+const rawLaravelOrders = [
+  {
+    id: 1045,
+    vendor_id: 12,
+    customer: { id: 55, name: 'Amina Bello', email: 'amina@example.com' },
+    status: 'paid', // Intelligently mapped to canonical 'completed'
+    currency: 'NGN',
+    total_amount: 45000.00, // Converted to 4,500,000 kobo
+    created_at: '2026-03-20 14:32:00',
+    order_items: [
+      {
+        id: 301,
+        product_id: 88,
+        product_name: 'Artisan Leather Bag',
+        quantity: 1,
+        price: 45000.00,
+      },
+    ],
+  },
+];
+
+const { orders, errors } = laravelAdapter.normalizeBatch(rawLaravelOrders);
+console.log('Normalized Order:', orders[0]);`}
+          />
+        </section>
+
+        <section id="status-normalization" className="scroll-mt-24 space-y-4">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Status Normalization Rules
+          </h2>
+          <p>
+            Different platforms use different terminology for transaction states. Charlie&apos;s
+            adapters automatically map source statuses to 5 canonical states:
+          </p>
+          <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-[#27272A]">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-zinc-200 bg-zinc-50 dark:border-[#27272A] dark:bg-[#111114]">
+                <tr>
+                  <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">
+                    Raw Status Input
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">
+                    Canonical Charlie Status
+                  </th>
+                  <th className="px-4 py-3 font-semibold text-zinc-800 dark:text-zinc-200">
+                    Recognized in Net Revenue?
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 bg-white dark:divide-[#27272A] dark:bg-[#09090B]">
+                <tr>
+                  <td className="px-4 py-3 font-mono text-zinc-700 dark:text-zinc-300">
+                    completed, paid, delivered, fulfilled, success
+                  </td>
+                  <td className="px-4 py-3 font-mono text-emerald-700 dark:text-emerald-400">
+                    completed
+                  </td>
+                  <td className="px-4 py-3 text-emerald-600 dark:text-emerald-400 font-medium">
+                    Yes
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 font-mono text-zinc-700 dark:text-zinc-300">
+                    pending, processing, unpaid, open
+                  </td>
+                  <td className="px-4 py-3 font-mono text-amber-700 dark:text-amber-400">
+                    pending
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
+                    No
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 font-mono text-zinc-700 dark:text-zinc-300">
+                    refunded
+                  </td>
+                  <td className="px-4 py-3 font-mono text-rose-700 dark:text-rose-400">
+                    refunded
+                  </td>
+                  <td className="px-4 py-3 text-rose-600 dark:text-rose-400 font-medium">
+                    Deducted
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 font-mono text-zinc-700 dark:text-zinc-300">
+                    cancelled, void, voided
+                  </td>
+                  <td className="px-4 py-3 font-mono text-zinc-500 dark:text-zinc-400">
+                    cancelled
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
+                    No
+                  </td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-3 font-mono text-zinc-700 dark:text-zinc-300">
+                    failed, declined
+                  </td>
+                  <td className="px-4 py-3 font-mono text-red-600 dark:text-red-400">
+                    failed
+                  </td>
+                  <td className="px-4 py-3 text-zinc-500 dark:text-zinc-400">
+                    No
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     ),

@@ -279,37 +279,74 @@ export default async function DashboardPage() {
       renderFrameworkGuide({
         framework: 'React',
         overview:
-          'In a client-side React SPA, you can use the official @charlie-the-ai/advisor-react package for turn-key hooks (useBusinessAnalytics, useAdvisorChat) and pre-built accessible dashboard components (RevenueCard, ParetoChart, CustomerSegments), or run math-only analytics with charlie-the-business-advisor. Secret AI API keys must NEVER be placed in browser code.',
+          'In a client-side React SPA, use the official @charlie-the-ai/advisor-react package for turn-key hooks (useBusinessAnalytics, useAdvisorChat) and pre-built accessible visualization components (RevenueCard, ParetoChart, CustomerSegments, MetricBadge), or run math-only analytics with charlie-the-business-advisor. Secret AI API keys must NEVER be placed in browser code.',
         folderTree: `src/
 ├── components/
 │   └── DashboardOverview.tsx
-├── hooks/
-│   └── useMerchantSnapshot.ts   # Fetches JSON from your backend API
+├── providers/
+│   └── CharlieAppProvider.tsx
 └── App.tsx`,
         codeLanguage: 'typescript',
         codeFilename: 'src/components/DashboardOverview.tsx',
         code: `import React from 'react';
-import { useBusinessAnalytics, RevenueCard, ParetoChart } from '@charlie-the-ai/advisor-react';
-import type { CharlieOrder } from '@charlie-the-ai/advisor-types';
+import {
+  useBusinessAnalytics,
+  RevenueCard,
+  ParetoChart,
+  CustomerSegments,
+  MetricBadge,
+} from '@charlie-the-ai/advisor-react';
+import type { Order } from '@charlie-the-ai/advisor-types';
 
-export function DashboardOverview({ orders }: { orders: CharlieOrder[] }) {
+export function DashboardOverview({ orders }: { orders: Order[] }) {
   // Turn-key React hook for deterministic metrics computation
-  const { revenue, pareto, loading } = useBusinessAnalytics({ orders, currency: 'USD' });
+  const { sales, pareto, customers, hasData } = useBusinessAnalytics(orders, {
+    currency: 'USD',
+    paretoThresholdPercentage: 80,
+  });
 
-  if (loading) return <div>Computing analytics...</div>;
+  if (!hasData || !sales) {
+    return <div>No order data available for analysis.</div>;
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {revenue && <RevenueCard data={revenue} />}
-      {pareto && <ParetoChart data={pareto} />}
+    <div className="space-y-6">
+      {/* Metric KPI Badges */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricBadge
+          label="Net Revenue"
+          value={sales.netRevenueFormatted}
+          changePercentage={sales.periodComparison?.netRevenueChangePercentage}
+        />
+        <MetricBadge
+          label="Total Orders"
+          value={sales.totalOrders.toLocaleString()}
+          changePercentage={sales.periodComparison?.ordersChangePercentage}
+        />
+        <MetricBadge
+          label="Average Order Value"
+          value={sales.averageOrderValueFormatted}
+        />
+      </div>
+
+      {/* Visual Charts */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        {pareto && (
+          <ParetoChart
+            contributors={pareto.contributors}
+            targetThresholdPercentage={80}
+          />
+        )}
+        {customers && <CustomerSegments segments={customers.segments} />}
+      </div>
     </div>
   );
 }`,
         securityNote:
           'CRITICAL: Never pass OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY into browser React components or client env vars. Anyone inspecting browser network traffic could steal your key. Always proxy AI advisory calls through your backend.',
         commonMistakes: [
-          'Putting AI API keys in .env with a VITE_ prefix (which bundles secrets publicly into client JavaScript).',
-          'Running heavy analytics inside render without useMemo when order arrays are large.',
+          'Putting AI API keys in .env with a VITE_ or NEXT_PUBLIC_ prefix (which bundles secrets publicly into client JavaScript).',
+          'Running heavy analytics inside render without useMemo when order arrays are large (useBusinessAnalytics memoizes internally).',
         ],
       }),
   },
@@ -361,24 +398,18 @@ class CharlieBridgeService
           filename: 'charlie-node-service/server.ts',
           language: 'typescript',
           code: `import express from 'express';
-import { createCharlie, createOrderAdapter } from 'charlie-the-business-advisor';
+import { createCharlie, createLaravelOrderAdapter } from 'charlie-the-business-advisor';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
 
-const mapLaravelOrders = createOrderAdapter({
-  id: (row: any) => String(row.id),
-  customerId: (row: any) => String(row.user_id),
-  totalMinor: (row: any) => Number(row.total_cents),
-  currency: (row: any) => row.currency ?? 'USD',
-  status: (row: any) => (row.status === 'completed' ? 'paid' : 'pending'),
-  createdAt: (row: any) => row.created_at,
-});
+const laravelAdapter = createLaravelOrderAdapter('USD');
+const charlie = createCharlie({ defaultCurrency: 'USD' });
 
 app.post('/snapshot', (req, res) => {
-  const charlie = createCharlie({ currency: req.body.currency || 'USD' });
-  const orders = mapLaravelOrders(req.body.orders ?? []);
-  res.json(charlie.analytics.createSnapshot({ orders }));
+  const { orders } = laravelAdapter.normalizeBatch(req.body.orders ?? []);
+  const snapshot = charlie.analyze({ orders });
+  res.json(snapshot);
 });
 
 app.listen(4100);`,
@@ -396,56 +427,76 @@ app.listen(4100);`,
     href: '/docs/api-reference',
     title: 'SDK API Reference',
     description:
-      'Reference overview of Charlie configuration options, analytics methods, adapters, and advisor interfaces.',
+      'Authoritative reference for Charlie constructor options, high-level analytics methods, AI advisory, React components, and CLI commands.',
     group: 'API Reference',
     headings: [
-      { id: 'create-charlie-config', title: 'createCharlie(options)' },
-      { id: 'analytics-methods', title: 'charlie.analytics Methods' },
-      { id: 'advisor-methods', title: 'charlie.advisor Methods' },
+      { id: 'create-charlie-config', title: 'Charlie Client & Configuration' },
+      { id: 'analytics-methods', title: 'Core Analytics Methods' },
+      { id: 'ai-advisory-methods', title: 'AI Advisory & Chat Methods' },
+      { id: 'adapters-and-money', title: 'Adapters & Money Helper' },
+      { id: 'react-components-hooks', title: 'React Hooks & Visual Components' },
+      { id: 'developer-cli', title: 'Developer CLI Commands' },
     ],
     searchKeywords: [
       'api reference',
       'createCharlie',
-      'calculateRevenue',
-      'calculatePareto',
-      'calculateRFM',
-      'types',
+      'Charlie',
+      'analyze',
+      'advise',
+      'chat',
+      'sales',
+      'pareto',
+      'customers',
+      'products',
+      'trends',
+      'money',
+      'adapters',
+      'hooks',
+      'components',
+      'cli',
     ],
-    markdownSummary: `# SDK API Reference\n\nIllustrative reference for \`createCharlie\`, \`charlie.analytics\`, and \`charlie.advisor\`.`,
+    markdownSummary: `# SDK API Reference\n\nAuthoritative reference for the unified Charlie client, deterministic analytics engine, multi-provider AI advisor, React components, and developer CLI.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
-        <Callout variant="note" title="Illustrative SDK specification">
-          The signatures below document the intended TypeScript interface design for
-          connecting this documentation portal to the canonical{' '}
-          <code className="font-mono text-xs">charlie-the-business-advisor</code> package.
+        <Callout variant="tip" title="Unified Charlie Ecosystem">
+          All primitives below can be imported directly from the top-level{' '}
+          <code className="font-mono text-xs">charlie-the-business-advisor</code> package or their
+          specialized modular packages (<code className="font-mono text-xs">@charlie-the-ai/analytics-core</code>,{' '}
+          <code className="font-mono text-xs">@charlie-the-ai/advisor-ai</code>,{' '}
+          <code className="font-mono text-xs">@charlie-the-ai/advisor-react</code>).
         </Callout>
 
         <section id="create-charlie-config" className="scroll-mt-24">
           <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
-            createCharlie(options)
+            Charlie Client &amp; Configuration
           </h2>
+          <p className="mb-4">
+            Initialize Charlie via <code className="font-mono text-xs">createCharlie(config)</code> or{' '}
+            <code className="font-mono text-xs">new Charlie(config)</code>:
+          </p>
           <ApiTable
             rows={[
               {
-                property: 'currency',
-                type: 'string',
-                required: true,
-                description: 'Default ISO 4217 currency code (e.g., "USD", "EUR", "NGN").',
+                property: 'defaultCurrency',
+                type: 'CurrencyCode',
+                required: false,
+                defaultValue: "'NGN'",
+                description: 'Default ISO 4217 currency code (e.g., "USD", "EUR", "NGN", "GBP").',
               },
               {
-                property: 'aiProvider',
-                type: 'CharlieAIProvider',
+                property: 'businessId',
+                type: 'string',
                 required: false,
-                defaultValue: 'undefined',
+                defaultValue: "'default_business'",
+                description: 'Identifier for the business entity generating snapshots.',
+              },
+              {
+                property: 'ai',
+                type: 'ProviderConfig | CharlieAiProvider',
+                required: false,
+                defaultValue: 'MockProvider (offline)',
                 description:
-                  'Optional instance of OpenAIProvider, GeminiProvider, AnthropicProvider, or MockProvider.',
-              },
-              {
-                property: 'timezone',
-                type: 'string',
-                required: false,
-                defaultValue: "'UTC'",
-                description: 'IANA timezone used when bucketing daily or monthly trends.',
+                  'AI provider instance (OpenAIProvider, GeminiProvider, AnthropicProvider, MockProvider) or auto-resolved from process.env.',
               },
             ]}
           />
@@ -453,70 +504,215 @@ app.listen(4100);`,
 
         <section id="analytics-methods" className="scroll-mt-24">
           <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
-            charlie.analytics Methods
+            Core Analytics Methods
           </h2>
+          <p className="mb-4">
+            Deterministic, 100% offline mathematical analytics with zero AI hallucinations:
+          </p>
           <ApiTable
             rows={[
               {
-                property: 'calculateRevenue(orders)',
-                type: '(orders: CharlieOrder[]) => RevenueResult',
+                property: 'analyze(options)',
+                type: '(options: AnalyzeOptions) => AnalyticsSnapshot',
                 required: true,
                 description:
-                  'Computes gross revenue, refunds, net revenue, paid count, and AOV.',
+                  'Generates a comprehensive, hash-verified snapshot covering sales, Pareto, RFM cohorts, and trends in a single pass.',
               },
               {
-                property: 'calculatePareto(orders, opts?)',
-                type: '(orders, ParetoOptions) => ParetoResult',
+                property: 'sales(orders, currency?)',
+                type: '(orders, currency?) => SalesSummary',
                 required: true,
                 description:
-                  'Identifies top customers or products responsible for thresholdPercent (default 80%).',
+                  'Computes gross revenue, refunds, net revenue, order volume, AOV, and periodic breakdowns.',
               },
               {
-                property: 'calculateRFM(orders, opts?)',
-                type: '(orders, RFMOptions) => RFMResult',
+                property: 'pareto(orders, dimension, currency?, threshold?)',
+                type: '(orders, dimension, currency?, threshold?) => ParetoResult',
                 required: true,
                 description:
-                  'Scores customers 1–5 on Recency, Frequency, and Monetary spend.',
+                  'Calculates 80/20 concentration across "product", "customer", or "category" with Gini coefficient.',
               },
               {
-                property: 'calculateTrends(orders, opts?)',
-                type: '(orders, TrendOptions) => TrendResult',
+                property: 'customers(orders, customers?, currency?)',
+                type: '(orders, customers?, currency?) => CustomerAnalytics',
                 required: true,
                 description:
-                  'Groups orders by day, week, or month and computes growth percentage.',
+                  'Performs quintile RFM segmentation (Champions, Loyal, At-Risk, etc.) and repeat customer rates.',
               },
               {
-                property: 'createSnapshot(input)',
-                type: '(SnapshotInput) => BusinessSnapshot',
+                property: 'products(orders, currency?)',
+                type: '(orders, currency?) => ProductAnalytics',
                 required: true,
                 description:
-                  'Combines all core analytics into one serializable JSON document.',
+                  'Analyzes SKU unit sales velocity, revenue contribution, and profit margins.',
+              },
+              {
+                property: 'trends(orders, currency?)',
+                type: '(orders, currency?) => TrendAnalytics',
+                required: true,
+                description:
+                  'Calculates 7-day and 30-day moving averages (SMA) and rolling z-score statistical anomaly detection.',
               },
             ]}
           />
         </section>
 
-        <section id="advisor-methods" className="scroll-mt-24">
+        <section id="ai-advisory-methods" className="scroll-mt-24">
           <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
-            charlie.advisor Methods
+            AI Advisory &amp; Chat Methods
+          </h2>
+          <p className="mb-4">
+            Evidence-grounded business interpretation with automated mathematical claim cross-checks:
+          </p>
+          <ApiTable
+            rows={[
+              {
+                property: 'advise(options)',
+                type: '(options: AdviseOptions) => Promise<AdviseResult>',
+                required: false,
+                description:
+                  'Generates prioritized business recommendations with evidence backing, action steps, estimated impact, and groundingScore validation.',
+              },
+              {
+                property: 'chat(options)',
+                type: '(options: ChatOptions) => Promise<ChatResult>',
+                required: false,
+                description:
+                  'Answers natural-language merchant questions strictly grounded in snapshot metrics, complete with citation references.',
+              },
+            ]}
+          />
+        </section>
+
+        <section id="adapters-and-money" className="scroll-mt-24">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Adapters &amp; Money Helper
           </h2>
           <ApiTable
             rows={[
               {
-                property: 'recommend(snapshot, opts?)',
-                type: 'Promise<AdvisoryRecommendations>',
-                required: false,
+                property: 'money',
+                type: 'Money (Utility Class)',
+                required: true,
                 description:
-                  'Generates prioritized recommendations using the configured aiProvider.',
+                  'Fixed-point arithmetic helper: Money.add(), Money.subtract(), Money.multiply(), Money.divide(), Money.format(), Money.toMinorUnits(), Money.toMajorUnits().',
               },
               {
-                property: 'ask({ snapshot, question })',
-                type: 'Promise<AdvisoryAnswer>',
-                required: false,
+                property: 'createOrderAdapter(config)',
+                type: '(config) => OrderAdapter',
+                required: true,
                 description:
-                  'Answers a natural-language business question grounded in the snapshot.',
+                  'Creates a declarative order adapter with decimal-to-minor conversion, normalizeBatch() error isolation, and deduplication.',
+              },
+              {
+                property: 'createCustomerAdapter(config)',
+                type: '(config) => CustomerAdapter',
+                required: true,
+                description:
+                  'Creates a declarative customer adapter for normalizing buyer profiles and account cohorts.',
+              },
+              {
+                property: 'laravelAdapter(currency?)',
+                type: '(currency?) => OrderAdapter',
+                required: true,
+                description:
+                  'Pre-configured adapter ready for Laravel Eloquent order schemas and relations.',
               },
             ]}
+          />
+        </section>
+
+        <section id="react-components-hooks" className="scroll-mt-24">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            React Hooks &amp; Visual Components
+          </h2>
+          <p className="mb-4">
+            Exported from <code className="font-mono text-xs">@charlie-the-ai/advisor-react</code>:
+          </p>
+          <ApiTable
+            rows={[
+              {
+                property: 'CharlieProvider',
+                type: 'React.FC<{ config, children }>',
+                required: true,
+                description:
+                  'Application context provider configuring default currency and timezone across dashboard components.',
+              },
+              {
+                property: 'useBusinessAnalytics(orders, options)',
+                type: 'Hook returning { sales, pareto, customers, hasData }',
+                required: true,
+                description:
+                  'Memoized client-side calculation of sales summaries, Pareto curves, and customer RFM cohorts.',
+              },
+              {
+                property: 'useBusinessRecommendations(options)',
+                type: 'Hook returning { recommendations, loading, error, refresh }',
+                required: true,
+                description:
+                  'Fetches and reacts to AI-generated business recommendations for a given merchant.',
+              },
+              {
+                property: 'useAdvisorChat(options)',
+                type: 'Hook returning { messages, input, setInput, sendMessage, loading }',
+                required: true,
+                description:
+                  'Powers interactive conversational business chat interfaces with message history.',
+              },
+              {
+                property: '<ParetoChart />',
+                type: 'React.FC<{ contributors, targetThresholdPercentage? }>',
+                required: true,
+                description:
+                  'Renders the 80/20 revenue concentration curve and cumulative distribution line.',
+              },
+              {
+                property: '<MetricBadge />',
+                type: 'React.FC<{ label, value, changePercentage?, trend? }>',
+                required: true,
+                description:
+                  'Displays high-level KPI badges with period-over-period percentage badges.',
+              },
+              {
+                property: '<RevenueCard />',
+                type: 'React.FC<{ data }>',
+                required: true,
+                description:
+                  'Displays comprehensive revenue metrics card including gross, refunds, net, and AOV.',
+              },
+              {
+                property: '<CustomerSegments />',
+                type: 'React.FC<{ segments }>',
+                required: true,
+                description:
+                  'Visualizes RFM customer segmentation distribution across Champions, At-Risk, etc.',
+              },
+              {
+                property: '<RecommendationWidget />',
+                type: 'React.FC<{ recommendation, onApply? }>',
+                required: true,
+                description:
+                  'Interactive recommendation card with action steps, impact rating, and evidence badges.',
+              },
+            ]}
+          />
+        </section>
+
+        <section id="developer-cli" className="scroll-mt-24 space-y-3">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Developer CLI Commands
+          </h2>
+          <p>
+            Quickly scaffold or verify your Charlie integration from the command line:
+          </p>
+          <CodeBlock
+            language="bash"
+            filename="terminal"
+            code={`# Interactive initialization wizard (generates charlie.config.ts)
+npx charlie-the-business-advisor init
+
+# Health check & diagnostic report (validates providers, keys, and packages)
+npx charlie-the-business-advisor doctor`}
           />
         </section>
       </div>

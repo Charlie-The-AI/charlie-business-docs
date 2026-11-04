@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { DOCS_SIDEBAR_GROUPS } from '../../data/docsNavigation';
 
@@ -8,7 +11,7 @@ interface DocsSidebarProps {
 }
 
 export function DocsSidebar({ onNavigate }: DocsSidebarProps) {
-  const location = useLocation();
+  const pathname = usePathname();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   const toggleGroup = (title: string) => {
@@ -42,11 +45,11 @@ export function DocsSidebar({ onNavigate }: DocsSidebarProps) {
             {!isCollapsed && (
               <ul className="mt-1.5 space-y-0.5 border-l border-zinc-200 pl-3 dark:border-[#27272A]">
                 {group.items.map((item) => {
-                  const isActive = location.pathname === item.href;
+                  const isActive = pathname === item.href;
                   return (
                     <li key={item.href}>
                       <Link
-                        to={item.href}
+                        href={item.href}
                         onClick={onNavigate}
                         aria-current={isActive ? 'page' : undefined}
                         className={`flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-[13px] transition-colors duration-150 ${

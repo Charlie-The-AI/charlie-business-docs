@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Bot, Cpu, FlaskConical, Sparkles } from 'lucide-react';
 
 const PROVIDERS = [
@@ -60,7 +60,7 @@ export function ProviderCards() {
             return (
               <Link
                 key={provider.name}
-                to={provider.href}
+                href={provider.href}
                 className="group flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-6 transition-colors duration-150 hover:border-emerald-500/40 hover:bg-zinc-50/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-[#27272A] dark:bg-[#18181B]/80 dark:hover:border-emerald-500/40 dark:hover:bg-[#18181B]"
               >
                 <div>

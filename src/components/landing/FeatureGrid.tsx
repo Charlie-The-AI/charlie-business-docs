@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import {
   Activity,
   BarChart3,
@@ -107,7 +107,7 @@ export function FeatureGrid() {
             return (
               <Link
                 key={feature.title}
-                to={feature.href}
+                href={feature.href}
                 className={`group flex flex-col justify-between rounded-xl border border-zinc-200 bg-zinc-50/40 p-6 transition-colors duration-150 hover:border-emerald-500/40 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-[#27272A] dark:bg-[#18181B]/60 dark:hover:border-emerald-500/40 dark:hover:bg-[#18181B] ${
                   feature.wide ? 'lg:col-span-2' : 'lg:col-span-1'
                 }`}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 export interface NavPageLink {
@@ -23,7 +23,7 @@ export function PageNavigation({ prev, next }: PageNavigationProps) {
     >
       {prev ? (
         <Link
-          to={prev.href}
+          href={prev.href}
           className="group flex flex-col items-start rounded-xl border border-zinc-200 bg-white p-4 transition-colors duration-150 hover:border-emerald-500/50 hover:bg-zinc-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-[#27272A] dark:bg-[#111114] dark:hover:border-emerald-500/40 dark:hover:bg-[#18181B]"
         >
           <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
@@ -40,7 +40,7 @@ export function PageNavigation({ prev, next }: PageNavigationProps) {
 
       {next ? (
         <Link
-          to={next.href}
+          href={next.href}
           className="group flex flex-col items-end rounded-xl border border-zinc-200 bg-white p-4 text-right transition-colors duration-150 hover:border-emerald-500/50 hover:bg-zinc-50/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-[#27272A] dark:bg-[#111114] dark:hover:border-emerald-500/40 dark:hover:bg-[#18181B]"
         >
           <span className="inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">

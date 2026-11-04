@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { CharlieLogo } from '../ui/CharlieLogo';
 import { SITE_CONFIG } from '../../lib/config';
 
@@ -12,7 +12,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
           <div className="md:col-span-2">
             <Link
-              to="/"
+              href="/"
               className="inline-flex items-center gap-2.5 text-base font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
             >
               <CharlieLogo size={24} />
@@ -32,7 +32,7 @@ export function Footer() {
             <ul className="mt-3 space-y-2.5 text-sm text-zinc-600 dark:text-zinc-400">
               <li>
                 <Link
-                  to="/docs"
+                  href="/docs"
                   className="hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors"
                 >
                   Documentation Home
@@ -40,7 +40,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/docs/quick-start"
+                  href="/docs/quick-start"
                   className="hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors"
                 >
                   Quick Start
@@ -48,7 +48,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/docs/adapters/overview"
+                  href="/docs/adapters/overview"
                   className="hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors"
                 >
                   Data Adapters
@@ -56,7 +56,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/docs/api-reference"
+                  href="/docs/api-reference"
                   className="hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors"
                 >
                   API Reference
@@ -92,7 +92,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/#examples"
+                  href="/#examples"
                   className="hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors"
                 >
                   Interactive Examples

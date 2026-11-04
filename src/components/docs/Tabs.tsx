@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { CodeBlock } from './CodeBlock';
 import { SITE_CONFIG } from '../../lib/config';

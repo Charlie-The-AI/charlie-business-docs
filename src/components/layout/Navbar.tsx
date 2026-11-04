@@ -1,23 +1,30 @@
+'use client';
+
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, Search, X } from 'lucide-react';
 import { CharlieLogo } from '../ui/CharlieLogo';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { SITE_CONFIG } from '../../lib/config';
+import { useSearch } from '../../lib/searchContext';
 
 interface NavbarProps {
-  onOpenSearch: () => void;
+  onOpenSearch?: () => void;
 }
 
 export function Navbar({ onOpenSearch }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchCtx = useSearch();
+
+  const handleOpenSearch = onOpenSearch ?? searchCtx.openSearch;
 
   const handleAnchorNav = (hash: string) => {
     setMobileOpen(false);
-    if (location.pathname !== '/') {
-      navigate(`/${hash}`);
+    if (pathname !== '/') {
+      router.push(`/${hash}`);
       setTimeout(() => {
         const el = document.querySelector(hash);
         el?.scrollIntoView({ behavior: 'smooth' });
@@ -33,7 +40,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between gap-8 px-4 sm:px-6 lg:px-8">
         {/* Zone 1: Brand mark + single-line wordmark */}
         <Link
-          to="/"
+          href="/"
           className="inline-flex items-center gap-2.5 text-base font-semibold tracking-tight text-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-md dark:text-zinc-50 whitespace-nowrap shrink-0"
         >
           <CharlieLogo size={24} />
@@ -60,7 +67,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
             How It Works
           </button>
           <Link
-            to="/docs"
+            href="/docs"
             className="hover:text-zinc-950 dark:hover:text-zinc-100 transition-colors duration-150 whitespace-nowrap shrink-0"
           >
             Documentation
@@ -86,7 +93,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={onOpenSearch}
+            onClick={handleOpenSearch}
             aria-label="Search documentation"
             className="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 text-xs text-zinc-500 transition-colors duration-150 hover:border-zinc-300 hover:text-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-[#27272A] dark:bg-[#111114] dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-200 whitespace-nowrap shrink-0"
           >
@@ -100,7 +107,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
           <ThemeToggle />
 
           <Link
-            to="/docs/quick-start"
+            href="/docs/quick-start"
             className="hidden sm:inline-flex h-9 items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-semibold text-white transition-colors duration-150 hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:bg-emerald-500 dark:text-zinc-950 dark:hover:bg-emerald-400 whitespace-nowrap shrink-0"
           >
             Get Started
@@ -126,7 +133,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
               type="button"
               onClick={() => {
                 setMobileOpen(false);
-                onOpenSearch();
+                handleOpenSearch();
               }}
               className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left text-sm text-zinc-600 dark:border-[#27272A] dark:bg-[#111114] dark:text-zinc-300"
             >
@@ -148,7 +155,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
               How It Works
             </button>
             <Link
-              to="/docs"
+              href="/docs"
               onClick={() => setMobileOpen(false)}
               className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
             >
@@ -172,7 +179,7 @@ export function Navbar({ onOpenSearch }: NavbarProps) {
             </a>
             <div className="pt-2">
               <Link
-                to="/docs/quick-start"
+                href="/docs/quick-start"
                 onClick={() => setMobileOpen(false)}
                 className="flex h-10 w-full items-center justify-center rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-500 dark:bg-emerald-500 dark:text-zinc-950"
               >

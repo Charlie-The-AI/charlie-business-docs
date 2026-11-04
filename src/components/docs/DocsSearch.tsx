@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { CornerDownLeft, FileText, Hash, Search, X } from 'lucide-react';
 import { ALL_DOC_PAGES } from '../../data/docsRegistry';
 
@@ -43,7 +45,7 @@ export function DocsSearch({ isOpen, onClose }: DocsSearchProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   // Build searchable flat index from all documentation pages & headings
   const allIndexedItems = useMemo<
@@ -128,7 +130,7 @@ export function DocsSearch({ isOpen, onClose }: DocsSearchProps) {
   const handleSelect = (href: string) => {
     onClose();
     const [pathname, hash] = href.split('#');
-    navigate(pathname);
+    router.push(pathname);
     if (hash) {
       setTimeout(() => {
         const el = document.getElementById(hash);

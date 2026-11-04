@@ -1,5 +1,8 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Check, ChevronRight, Copy } from 'lucide-react';
 import { DocsHeader } from '../components/layout/DocsHeader';
 import { DocsSidebar } from '../components/layout/DocsSidebar';
@@ -8,26 +11,32 @@ import { PageNavigation } from '../components/docs/PageNavigation';
 import { Footer } from '../components/layout/Footer';
 import { getDocPageByPathname } from '../data/docsRegistry';
 import { getPrevNextLinks } from '../data/docsNavigation';
+import { useSearch } from '../lib/searchContext';
 
 interface DocsLayoutPageProps {
-  onOpenSearch: () => void;
+  onOpenSearch?: () => void;
+  pathnameOverride?: string;
 }
 
-export function DocsLayoutPage({ onOpenSearch }: DocsLayoutPageProps) {
-  const location = useLocation();
+export function DocsLayoutPage({ onOpenSearch, pathnameOverride }: DocsLayoutPageProps) {
+  const currentPathname = usePathname();
+  const pathname = pathnameOverride ?? currentPathname;
+  const searchCtx = useSearch();
+  const handleOpenSearch = onOpenSearch ?? searchCtx.openSearch;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
 
-  const page = getDocPageByPathname(location.pathname);
-  const { prev, next } = getPrevNextLinks(page?.href ?? location.pathname);
+  const page = getDocPageByPathname(pathname);
+  const { prev, next } = getPrevNextLinks(page?.href ?? pathname);
 
   useEffect(() => {
     setMobileMenuOpen(false);
     setCopiedMarkdown(false);
-    if (!location.hash) {
+    if (typeof window !== 'undefined' && !window.location.hash) {
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     }
-  }, [location.pathname, location.hash]);
+  }, [pathname]);
 
   const handleCopyMarkdown = async () => {
     if (!page) return;
@@ -51,7 +60,7 @@ export function DocsLayoutPage({ onOpenSearch }: DocsLayoutPageProps) {
   return (
     <div className="min-h-screen flex flex-col bg-white text-zinc-950 dark:bg-[#09090B] dark:text-[#FAFAFA]">
       <DocsHeader
-        onOpenSearch={onOpenSearch}
+        onOpenSearch={handleOpenSearch}
         mobileMenuOpen={mobileMenuOpen}
         onToggleMobileMenu={() => setMobileMenuOpen((v) => !v)}
       />
@@ -92,7 +101,7 @@ export function DocsLayoutPage({ onOpenSearch }: DocsLayoutPageProps) {
                     className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400"
                   >
                     <Link
-                      to="/docs"
+                      href="/docs"
                       className="hover:text-zinc-900 dark:hover:text-zinc-200 transition-colors"
                     >
                       Docs
@@ -150,12 +159,12 @@ export function DocsLayoutPage({ onOpenSearch }: DocsLayoutPageProps) {
                   Documentation page not found
                 </h1>
                 <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  The route <code className="font-mono text-xs">{location.pathname}</code>{' '}
+                  The route <code className="font-mono text-xs">{pathname}</code>{' '}
                   does not match an existing guide.
                 </p>
                 <div className="mt-6">
                   <Link
-                    to="/docs"
+                    href="/docs"
                     className="inline-flex h-9 items-center justify-center rounded-lg bg-emerald-600 px-4 text-xs font-semibold text-white hover:bg-emerald-500 dark:bg-emerald-500 dark:text-zinc-950"
                   >
                     Return to Documentation Home

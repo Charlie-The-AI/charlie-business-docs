@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
@@ -11,7 +13,7 @@ import { AnalyticsDemo } from '../components/landing/AnalyticsDemo';
 import { FinalCTA } from '../components/landing/FinalCTA';
 
 interface LandingPageProps {
-  onOpenSearch: () => void;
+  onOpenSearch?: () => void;
 }
 
 export function LandingPage({ onOpenSearch }: LandingPageProps) {

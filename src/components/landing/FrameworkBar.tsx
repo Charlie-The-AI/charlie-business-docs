@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 const FRAMEWORKS = [
   {
@@ -56,7 +56,7 @@ export function FrameworkBar() {
             </p>
           </div>
           <Link
-            to="/docs/frameworks/nodejs"
+            href="/docs/frameworks/nodejs"
             className="text-xs font-medium text-emerald-700 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300 whitespace-nowrap shrink-0"
           >
             Explore framework guides →
@@ -67,7 +67,7 @@ export function FrameworkBar() {
           {FRAMEWORKS.map((fw) => (
             <Link
               key={fw.name}
-              to={fw.href}
+              href={fw.href}
               className="group flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3.5 transition-colors duration-150 hover:border-emerald-500/40 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-[#27272A] dark:bg-[#18181B]/70 dark:hover:border-emerald-500/40 dark:hover:bg-[#18181B]"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 font-mono text-xs font-semibold text-zinc-800 group-hover:border-emerald-500/30 group-hover:text-emerald-600 dark:border-zinc-700 dark:bg-[#111114] dark:text-zinc-200 dark:group-hover:text-emerald-400">

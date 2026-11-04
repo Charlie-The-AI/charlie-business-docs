@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import {
   ArrowRight,
   Database,
@@ -98,7 +98,7 @@ export const GETTING_STARTED_PAGES: DocPageData[] = [
               return (
                 <Link
                   key={card.title}
-                  to={card.href}
+                  href={card.href}
                   className="group flex flex-col justify-between rounded-xl border border-zinc-200 bg-white p-5 transition-colors duration-150 hover:border-emerald-500/50 hover:bg-zinc-50/70 dark:border-[#27272A] dark:bg-[#111114] dark:hover:border-emerald-500/40 dark:hover:bg-[#18181B]"
                 >
                   <div>
@@ -164,7 +164,7 @@ export const GETTING_STARTED_PAGES: DocPageData[] = [
             ].map((item) => (
               <li key={item.step}>
                 <Link
-                  to={item.href}
+                  href={item.href}
                   className="flex items-start gap-4 rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 transition-colors hover:border-emerald-500/40 dark:border-[#27272A] dark:bg-[#111114]/80"
                 >
                   <span className="font-mono text-xs font-semibold text-emerald-700 dark:text-emerald-400 pt-0.5 tabular-nums">
@@ -536,7 +536,7 @@ run();`}
           <p>
             Now that you have run your first snapshot, learn how{' '}
             <Link
-              to="/docs/adapters/overview"
+              href="/docs/adapters/overview"
               className="font-medium text-emerald-700 underline underline-offset-4 dark:text-emerald-400"
             >
               Data Adapters
@@ -544,7 +544,7 @@ run();`}
             map your real database columns into <code className="font-mono text-xs">CharlieOrder</code>{' '}
             records, or explore{' '}
             <Link
-              to="/docs/analytics/rfm"
+              href="/docs/analytics/rfm"
               className="font-medium text-emerald-700 underline underline-offset-4 dark:text-emerald-400"
             >
               RFM Customer Segmentation

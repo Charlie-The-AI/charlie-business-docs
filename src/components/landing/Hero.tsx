@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import {
   ArrowRight,
   Check,
@@ -95,7 +97,7 @@ export function Hero() {
           {/* Primary & Secondary Actions */}
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
             <Link
-              to="/docs/quick-start"
+              href="/docs/quick-start"
               className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:bg-emerald-500 dark:text-zinc-950 dark:hover:bg-emerald-400 whitespace-nowrap shrink-0"
             >
               <span>Get Started</span>

@@ -1,0 +1,6 @@
+{
+  "name": "Charlie the Business Advisor",
+  "description": "Free, open-source TypeScript business analytics and AI advisory toolkit for developers. Documentation and interactive product showcase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

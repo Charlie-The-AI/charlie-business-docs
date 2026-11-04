@@ -1,5 +1,7 @@
 # Charlie the Business Advisor — Documentation & Landing Website
 
+> 🌐 **Live Deployment:** [https://charlie-business-docs.vercel.app/](https://charlie-business-docs.vercel.app/)
+
 The official documentation and landing website for **Charlie the Business Advisor** (`charlie-the-business-advisor` and `@charlie-the-ai/*`).
 
 Built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS v4**, **Recharts**, and **Lucide Icons**.

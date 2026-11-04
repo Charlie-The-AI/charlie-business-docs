@@ -431,6 +431,7 @@ app.listen(4100);`,
     group: 'API Reference',
     headings: [
       { id: 'create-charlie-config', title: 'Charlie Client & Configuration' },
+      { id: 'advisor-types-schemas', title: 'Domain Models & Zod Schemas (@charlie-the-ai/advisor-types)' },
       { id: 'analytics-methods', title: 'Core Analytics Methods' },
       { id: 'ai-advisory-methods', title: 'AI Advisory & Chat Methods' },
       { id: 'adapters-and-money', title: 'Adapters & Money Helper' },
@@ -439,6 +440,16 @@ app.listen(4100);`,
     ],
     searchKeywords: [
       'api reference',
+      'advisor-types',
+      '@charlie-the-ai/advisor-types',
+      'OrderSchema',
+      'CustomerSchema',
+      'AnalyticsSnapshotSchema',
+      'RecommendationSchema',
+      'CurrencyCodeSchema',
+      'schemas',
+      'zod',
+      'types',
       'createCharlie',
       'Charlie',
       'analyze',
@@ -455,7 +466,7 @@ app.listen(4100);`,
       'components',
       'cli',
     ],
-    markdownSummary: `# SDK API Reference\n\nAuthoritative reference for the unified Charlie client, deterministic analytics engine, multi-provider AI advisor, React components, and developer CLI.`,
+    markdownSummary: `# SDK API Reference\n\nAuthoritative reference for the unified Charlie client, @charlie-the-ai/advisor-types contracts, deterministic analytics engine, multi-provider AI advisor, React components, and developer CLI.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <Callout variant="tip" title="Unified Charlie Ecosystem">
@@ -497,6 +508,69 @@ app.listen(4100);`,
                 defaultValue: 'MockProvider (offline)',
                 description:
                   'AI provider instance (OpenAIProvider, GeminiProvider, AnthropicProvider, MockProvider) or auto-resolved from process.env.',
+              },
+            ]}
+          />
+        </section>
+
+        <section id="advisor-types-schemas" className="scroll-mt-24">
+          <h2 className="text-xl font-bold text-zinc-950 dark:text-zinc-50">
+            Domain Models &amp; Zod Schemas (@charlie-the-ai/advisor-types)
+          </h2>
+          <p className="mb-4">
+            Foundational data contracts, integer minor-unit models, and runtime Zod validation schemas
+            exported from <code className="font-mono text-xs">@charlie-the-ai/advisor-types</code>:
+          </p>
+          <ApiTable
+            rows={[
+              {
+                property: 'OrderSchema / Order',
+                type: 'ZodSchema & TypeScript Interface',
+                required: true,
+                description:
+                  'Canonical order model with id, customerId, status (completed, pending, cancelled, refunded, failed), integer totalAmount (minor units), currency, createdAt, and optional line items.',
+              },
+              {
+                property: 'OrderItemSchema / OrderItem',
+                type: 'ZodSchema & TypeScript Interface',
+                required: false,
+                description:
+                  'Line item detail including productId, productName, quantity, integer unitPrice, and totalPrice.',
+              },
+              {
+                property: 'CustomerSchema / Customer',
+                type: 'ZodSchema & TypeScript Interface',
+                required: false,
+                description:
+                  'Customer profile for RFM cohort analysis, including lifetime spend and order count.',
+              },
+              {
+                property: 'CurrencyCodeSchema / CurrencyCode',
+                type: 'ZodSchema & String Union',
+                required: true,
+                description:
+                  'ISO 4217 standard currency code validation (USD, EUR, GBP, NGN, KES, ZAR, JPY, etc.).',
+              },
+              {
+                property: 'AnalyticsSnapshotSchema / AnalyticsSnapshot',
+                type: 'ZodSchema & TypeScript Interface',
+                required: true,
+                description:
+                  'Complete immutable snapshot combining sales summary, Pareto results, RFM customer cohorts, and sales trends.',
+              },
+              {
+                property: 'RecommendationSchema / Recommendation',
+                type: 'ZodSchema & TypeScript Interface',
+                required: false,
+                description:
+                  'AI business advice structure containing title, action, estimatedImpact, priority, and grounded evidence metrics.',
+              },
+              {
+                property: 'EvidenceMetricSchema / EvidenceMetric',
+                type: 'ZodSchema & TypeScript Interface',
+                required: false,
+                description:
+                  'Quantitative metric claim supporting an AI recommendation, validated during grounding verification.',
               },
             ]}
           />

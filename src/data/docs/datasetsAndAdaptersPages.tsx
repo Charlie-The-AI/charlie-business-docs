@@ -23,6 +23,13 @@ export const DATASETS_AND_ADAPTERS_PAGES: DocPageData[] = [
     ],
     searchKeywords: [
       'CharlieOrder',
+      'Order',
+      'OrderSchema',
+      'advisor-types',
+      '@charlie-the-ai/advisor-types',
+      'types',
+      'schemas',
+      'zod',
       'orders',
       'dataset',
       'totalMinor',
@@ -30,7 +37,7 @@ export const DATASETS_AND_ADAPTERS_PAGES: DocPageData[] = [
       'paid',
       'refunded',
     ],
-    markdownSummary: `# CharlieOrder Dataset\n\nRepresents a single transaction with \`id\`, \`customerId\`, \`totalMinor\`, \`currency\`, \`status\`, and \`createdAt\`.`,
+    markdownSummary: `# CharlieOrder Dataset\n\nRepresents a single transaction with \`id\`, \`customerId\`, \`totalMinor\`, \`currency\`, \`status\`, and \`createdAt\`. Canonical definition from \`@charlie-the-ai/advisor-types\`.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <section id="what-is-an-order" className="scroll-mt-24 space-y-3">
@@ -38,7 +45,10 @@ export const DATASETS_AND_ADAPTERS_PAGES: DocPageData[] = [
             What Is a CharlieOrder?
           </h2>
           <p>
-            A <code className="font-mono text-xs">CharlieOrder</code> is Charlie&apos;s
+            A <code className="font-mono text-xs">CharlieOrder</code> (exported canonically as{' '}
+            <code className="font-mono text-xs">Order</code> and runtime-validated via{' '}
+            <code className="font-mono text-xs">OrderSchema</code> in{' '}
+            <code className="font-mono text-xs">@charlie-the-ai/advisor-types</code>) is Charlie&apos;s
             standard TypeScript shape for a completed or attempted purchase. It works
             equally well for e-commerce carts, SaaS invoice payments, paid appointments,
             or B2B wholesale orders.
@@ -174,13 +184,19 @@ export const DATASETS_AND_ADAPTERS_PAGES: DocPageData[] = [
     ],
     searchKeywords: [
       'CharlieCustomer',
+      'Customer',
+      'CustomerSchema',
+      'advisor-types',
+      '@charlie-the-ai/advisor-types',
+      'types',
+      'schemas',
       'customers',
       'privacy',
       'PII',
       'customerId',
       'cohort',
     ],
-    markdownSummary: `# CharlieCustomer Dataset\n\nRepresents a customer with a required \`id\` and optional display metadata. PII is never required for analytics or AI calls.`,
+    markdownSummary: `# CharlieCustomer Dataset\n\nRepresents a customer with a required \`id\` and optional display metadata. Canonical definition from \`@charlie-the-ai/advisor-types\`.`,
     render: () => (
       <div className="space-y-8 text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
         <section id="what-is-a-customer" className="scroll-mt-24 space-y-3">
@@ -188,7 +204,10 @@ export const DATASETS_AND_ADAPTERS_PAGES: DocPageData[] = [
             What Is a CharlieCustomer?
           </h2>
           <p>
-            A <code className="font-mono text-xs">CharlieCustomer</code> represents an
+            A <code className="font-mono text-xs">CharlieCustomer</code> (exported canonically as{' '}
+            <code className="font-mono text-xs">Customer</code> and runtime-validated via{' '}
+            <code className="font-mono text-xs">CustomerSchema</code> in{' '}
+            <code className="font-mono text-xs">@charlie-the-ai/advisor-types</code>) represents an
             individual shopper, client account, or organization that places orders. Even
             if you only pass orders, Charlie can infer customer cohorts from{' '}
             <code className="font-mono text-xs">order.customerId</code>—providing{' '}
